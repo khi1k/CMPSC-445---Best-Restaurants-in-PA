@@ -1,0 +1,30 @@
+#Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+#Model and data files (too large, or generated)
+*.pkl
+*.joblib
+*.csv
+*.png
+*.jpg
+
+#Jupyter notebooks (if you use them)
+*.ipynb_checkpoints/
+*.ipynb
+
+#IDE / OS
+.DS_Store
+.vscode/
+.idea/
+
+#Logs and temporary files
+*.log
+*.tmp
