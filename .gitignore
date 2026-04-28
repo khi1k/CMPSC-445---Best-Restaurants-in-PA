@@ -13,6 +13,9 @@ build/
 *.pkl
 *.joblib
 *.csv
+!restaurants_pa_clean.csv
+!restaurants_pa_model_ready.csv
+!restaurants_with_predictions.csv
 *.png
 *.jpg
 

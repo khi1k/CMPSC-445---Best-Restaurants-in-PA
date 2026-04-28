@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PA Restaurant Finder</title>
+<link href="https://fonts.googleapis.com/css2?family=Bona+Nova+SC:ital,wght@0,400;0,700;1,400&family=Cardo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --almond-silk:#F9E3DC;
+    --desert-sand:#E6B8A2;
+    --ink:        #232021;
+    --ink-light:  #413938;
+    --terra:      #4E1717;
+    --terra-light:#D3AF9C;
+    --gold:       #C8963E;
+    --white:      #FDFAF6;
+    --card-bg:    #EECEBF;
+    --border:     #EECEBF;
+    --font-serif: 'Cardo', serif; 
+    --font-sans:  'Bona Nova SC', sans-serif; 
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--almond-silk);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* Header CSS */
+  header {
+    background: var(--ink);
+    padding: 48px 40px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(255,255,255,0.015) 40px,
+      rgba(255,255,255,0.015) 80px
+    );
+  }
+
+  .header-eyebrow {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 400;
+    color: var(--white);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  header h1 em {
+    font-style: italic;
+    color: var(--terra-light);
+  }
+
+  .header-sub {
+    margin-top: 12px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.04em;
+  }
+
+  /* Search panel CSS */
+  .search-wrap {
+    max-width: 860px;
+    margin: -28px auto 0;
+    padding: 0 24px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .search-panel {
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 40px rgba(26,23,20,0.14), 0 1px 0 var(--border);
+    padding: 32px 36px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 20px;
+    align-items: end;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 8px; }
+
+  .field-group label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+
+  .field-group select {
+    appearance: none;
+    background: var(--terra-light) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235C5650' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 13px 40px 13px 16px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+
+  .field-group select:focus {
+    outline: none;
+    border-color: var(--terra);
+    box-shadow: 0 0 0 3px rgba(185,79,44,0.12);
+  }
+
+  .field-group select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .search-btn {
+    background: var(--terra);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 28px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(185,79,44,0.3);
+  }
+
+  .search-btn:hover { background: #3C0000; box-shadow: 0 6px 18px rgba(185,79,44,0.4); }
+  .search-btn:active { transform: translateY(1px); }
+  .search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Results CSS */
+  .results-section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* Status CSS */
+  .status-msg {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--ink-light);
+  }
+
+
+  .status-msg h3 {
+    font-family: var(--font-sans);
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .status-msg p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+
+  .loading-dots span {
+    width: 8px; height: 8px;
+    background: var(--terra);
+    border-radius: 50%;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-8px); opacity: 1; }
+  }
+
+  /* Results header CSS */
+  .results-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  .results-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 400;
+  }
+
+  .results-title em { font-style: italic; color: var(--terra); }
+
+  .results-count {
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Restaurant cards CSS */
+  .cards-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .restaurant-card {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: start;
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: cardIn 0.4s ease both;
+  }
+
+  .restaurant-card:hover {
+    box-shadow: 0 6px 24px rgba(26,23,20,0.1);
+    transform: translateY(-2px);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-rank {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--terra);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .card-name {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--ink-light);
+  }
+
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .card-description {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-light);
+    max-width: 560px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .badge {
+    background: var(--almond-silk);
+    border: 1px solid var(--border);
+    color: var(--ink-light);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 400;
+  }
+
+  /* Rating widget CSS */
+  .rating-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 72px;
+  }
+
+  .rating-score {
+    font-family: var(--font-serif);
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .rating-stars {
+    display: flex;
+    gap: 1px;
+  }
+
+  .star {
+    width: 11px; height: 11px;
+    clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  }
+
+  .star.full  { background: var(--gold); }
+  .star.half  { background: linear-gradient(90deg, var(--gold) 50%, var(--desert-sand) 50%); }
+  .star.empty { background: var(--desert-sand); }
+
+  .price-tag {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--terra);
+    letter-spacing: 0.05em;
+  }
+
+  /* API status bar CSS */
+  .api-bar {
+    background: var(--ink);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    font-size: 11px;
+    padding: 8px;
+    letter-spacing: 0.06em;
+  }
+
+  .api-bar a { color: var(--gold); text-decoration: none; }
+  .api-bar a:hover { text-decoration: underline; }
+
+  .dot-live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4CAF50; margin-right: 6px; }
+  .dot-dead { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #E57373; margin-right: 6px; }
+
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .search-panel { grid-template-columns: 1fr; }
+    header { padding: 40px 24px 32px; }
+    .restaurant-card { grid-template-columns: 1fr; }
+    .rating-widget { flex-direction: row; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="api-bar" id="api-bar">
+  Connecting to API at <a href="http://localhost:8000/docs" target="_blank">localhost:8000</a>…
+</div>
+
+<header>
+  <div class="header-eyebrow">Pennsylvania Restaurant Finder</div>
+  <h1>Find Your Next<br> Restaurant</h1>
+  <div class="header-sub">Top-rated picks across PA - Powered by XGBoost</div>
+</header>
+
+<div class="search-wrap">
+  <div class="search-panel">
+    <div class="field-group">
+      <label>Area / City</label>
+      <select id="sel-city" disabled>
+        <option value="">Loading areas…</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Cuisine Type</label>
+      <select id="sel-cuisine" disabled>
+        <option value="">Select an area first</option>
+      </select>
+    </div>
+    <button class="search-btn" id="search-btn" disabled onclick="searchRestaurants()">
+      Search
+    </button>
+  </div>
+</div>
+
+<div class="results-section" id="results-section">
+  <div class="status-msg" id="status-msg">
+    <h3>Choose an area and cuisine to begin</h3>
+    <p>Select from the dropdowns above to discover the<br>top-rated restaurants in your area.</p>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let allRestaurants = [];
+let cityCuisineMap  = {};
+
+async function init() {
+  try {
+    const res = await fetch(`${API}/restaurants?top_n=1000`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    allRestaurants = await res.json();
+
+    allRestaurants.forEach(r => {
+      const city    = normalise(r.city);
+      const cuisine = normalise(r.category || r.categories || r.cuisine || '');
+      if (!city) return;
+      if (!cityCuisineMap[city]) cityCuisineMap[city] = new Set();
+      const primary = cuisine.split(',')[0].trim();
+      if (primary) cityCuisineMap[city].add(primary);
+    });
+
+    populateCities();
+    updateApiBar(true);
+
+  } catch (e) {
+    updateApiBar(false);
+    showStatus('Cannot reach the API', 'Make sure the backend is running');
+  }
+}
+
+function normalise(str) {
+  return (str || '').toString().trim();
+}
+
+function populateCities() {
+  const cities = Object.keys(cityCuisineMap).sort();
+  const sel = document.getElementById('sel-city');
+  sel.innerHTML = '<option value="">— Select area —</option>';
+
+  const allOption = document.createElement('option');
+  allOption.value = 'ALL_PA';
+  allOption.textContent = 'All of Pennsylvania';
+  sel.appendChild(allOption);
+
+  cities.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = titleCase(c);
+    sel.appendChild(opt);
+  });
+  sel.disabled = false;
+  sel.addEventListener('change', onCityChange);
+}
+
+function onCityChange() {
+    const selectedCity = document.getElementById('sel-city').value;
+    const cuisineSel = document.getElementById('sel-cuisine');
+    const btn = document.getElementById('search-btn');
+
+    if (!selectedCity) {
+        cuisineSel.innerHTML = '<option value="">Select an area first</option>';
+        cuisineSel.disabled = true;
+        btn.disabled = true;
+        return;
+    }
+
+    if (selectedCity === 'ALL_PA') {
+        const globalCuisines = new Set();
+        allRestaurants.forEach(r => {
+            const primary = normalise(r.category || r.categories || '').split(',')[0].trim().toLowerCase();
+            if (primary) globalCuisines.add(primary);
+        });
+        const sortedCuisines = Array.from(globalCuisines).sort();
+        cuisineSel.innerHTML = '<option value="">— All cuisines —</option>';
+        sortedCuisines.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = titleCase(c);
+            cuisineSel.appendChild(opt);
+        });
+        cuisineSel.disabled = false;
+        btn.disabled = false;
+        return;
+    }
+
+    const cuisineCounts = {};
+    allRestaurants
+        .filter(r => normalise(r.city).toLowerCase() === selectedCity.toLowerCase())
+        .forEach(r => {
+            const primary = normalise(r.category || r.categories || '').split(',')[0].trim().toLowerCase();
+            if (primary) cuisineCounts[primary] = (cuisineCounts[primary] || 0) + 1;
+        });
+
+    const sorted = Object.entries(cuisineCounts).sort((a, b) => b[1] - a[1]);
+    const popular = sorted.slice(0, 10).map(([c]) => c);
+    const suggested = sorted.slice(10).map(([c]) => c);
+
+    cuisineSel.innerHTML = '<option value="">— All cuisines —</option>';
+
+    if (popular.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = 'Popular';
+        popular.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = titleCase(c);
+            grp.appendChild(opt);
+        });
+        cuisineSel.appendChild(grp);
+    }
+
+    if (suggested.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = 'Suggested';
+        suggested.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = titleCase(c);
+            grp.appendChild(opt);
+        });
+        cuisineSel.appendChild(grp);
+    }
+
+    cuisineSel.disabled = false;
+    btn.disabled = false;
+}
+
+async function searchRestaurants() {
+  const cityValue = document.getElementById('sel-city').value;
+  const cuisine = document.getElementById('sel-cuisine').value;
+  if (!cityValue) return;
+
+  const isAllPA = (cityValue === 'ALL_PA');
+  const displayCity = isAllPA ? 'Pennsylvania' : cityValue;
+
+  showLoading(displayCity, cuisine);
+
+  try {
+    const params = new URLSearchParams({ top_n: 500 });
+    if (!isAllPA) {
+      params.append('city', cityValue);
+    }
+
+    const res = await fetch(`${API}/restaurants?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let data = await res.json();
+
+    const filtered = cuisine
+            ? data.filter(r => {
+                const cats = (r.category || r.categories || '').toLowerCase();
+                return cats.includes(cuisine.toLowerCase());
+            })
+            : data;
+
+    const results = filtered
+        .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+        .slice(0, 10);
+
+    if (!results || results.length === 0) {
+      showStatus(
+        'No restaurants found',
+        `We couldn't find a ${titleCase(cuisine)} in <strong>${titleCase(displayCity)}</strong>.<br>Try a different cuisine or area.`
+      );
+    } else {
+      renderCards(results, displayCity, cuisine);
+    }
+
+  } catch(e) {
+    showStatus( 'Something went wrong', `Could not fetch results. Check the backend is still running.`);
+  }
+}
+
+function renderCards(restaurants, city, cuisine) {
+  const section = document.getElementById('results-section');
+  const label   = cuisine ? `<em>${titleCase(cuisine)}</em> in ${titleCase(city)}` : `Top restaurants in <em>${titleCase(city)}</em>`;
+
+  let html = `
+    <div class="results-header">
+      <div class="results-title">Best ${label}</div>
+      <div class="results-count">${restaurants.length} result${restaurants.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="cards-list">`;
+
+  restaurants.forEach((r, i) => {
+    const rating   = parseFloat(r.rating) || 0;
+    const price    = priceSymbol(r.price_level);
+    const address  = r.address || [r.street, r.city, r.state].filter(Boolean).join(', ');
+    const cuisineText  = titleCase((r.category || r.categories || '').split(',')[0].trim());
+    const desc     = r.description || '';
+    const delay    = i * 0.06;
+
+    const tags = [];
+    if (r.service_options) {
+      r.service_options.split(',').slice(0,3).forEach(t => tags.push(t.trim()));
+    }
+
+    html += `
+      <div class="restaurant-card" style="animation-delay:${delay}s">
+        <div class="card-body">
+          <div class="card-rank">#${i + 1} Top Rated</div>
+          <div class="card-name">${escHtml(r.title || r.name || 'Unnamed')}</div>
+          <div class="card-meta">
+            ${cuisineText ? `<span> ${escHtml(cuisineText)}</span>` : ''}
+            ${address ? `<span> ${escHtml(address)}</span>` : ''}
+          </div>
+          ${desc ? `<div class="card-description">${escHtml(desc)}</div>` : ''}
+          ${tags.length ? `<div class="card-badge-row">${tags.map(t => `<span class="badge">${escHtml(t)}</span>`).join('')}</div>` : ''}
+        </div>
+        <div class="rating-widget">
+          <div class="rating-score">${rating.toFixed(1)}</div>
+          <div class="rating-stars">${starsHtml(rating)}</div>
+          ${price ? `<div class="price-tag">${price}</div>` : ''}
+        </div>
+      </div>`;
+  });
+
+  html += '</div>';
+  section.innerHTML = html;
+}
+
+function showLoading(city, cuisine) {
+  const section = document.getElementById('results-section');
+  section.innerHTML = `
+    <div class="status-msg">
+      <h3>Finding the best${cuisine ? ' ' + titleCase(cuisine) : ''} spots in ${titleCase(city)}…</h3>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>`;
+}
+
+function showStatus(title, body) {
+  document.getElementById('results-section').innerHTML = `
+    <div class="status-msg">
+      <h3>${title}</h3>
+      <p>${body}</p>
+    </div>`;
+}
+
+function updateApiBar(live) {
+  document.getElementById('api-bar').innerHTML = live
+    ? `<span class="dot-live"></span>API online`
+    : `<span class="dot-dead"></span>API offline `;
+}
+
+function starsHtml(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) {
+    if (rating >= i)          html += `<div class="star full"></div>`;
+    else if (rating >= i-0.5) html += `<div class="star half"></div>`;
+    else                       html += `<div class="star empty"></div>`;
+  }
+  return html;
+}
+
+function priceSymbol(level) {
+  const n = parseInt(level);
+  if (!n || isNaN(n)) return '';
+  return '$'.repeat(Math.min(n, 4));
+}
+
+function titleCase(str) {
+  return (str || '').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function escHtml(str) {
+  return (str || '').toString()
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
